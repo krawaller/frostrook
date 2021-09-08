@@ -1,0 +1,22 @@
+{
+  "scripts": {
+    "exec": "echo 'testing exec' && node -r esbuild-runner/register -r dotenv/config exec.ts dotenv_config_path=.env.example",
+    "setupdb": "node -r esbuild-runner/register -r dotenv/config fauna/setup/index.ts dotenv_config_path=.env"
+  },
+  "devDependencies": {
+    "@types/node": "^16.7.13",
+    "@typescript-eslint/eslint-plugin": "^4.31.0",
+    "@typescript-eslint/parser": "^4.31.0",
+    "dotenv": "^10.0.0",
+    "esbuild": "^0.12.25",
+    "esbuild-register": "^3.0.0",
+    "esbuild-runner": "^2.2.1",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "typescript": "^4.4.2"
+  },
+  "dependencies": {
+    "faunadb": "^4.4.1"
+  }
+}
