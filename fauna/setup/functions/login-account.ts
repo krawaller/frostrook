@@ -37,10 +37,6 @@ export const setupLoginAccount = async (exec: Executor) => {
           resource: Index('rate_limiting_by_action_and_identity'),
           actions: { read: true },
         },
-        {
-          resource: Collection('users'),
-          actions: { read: true },
-        },
       ],
     }),
     'functionrole_login role'

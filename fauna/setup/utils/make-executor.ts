@@ -1,6 +1,9 @@
 import { Client, Expr } from 'faunadb'
 
-export type Executor = (expr: Expr, entity: string) => Promise<void | object>
+export type Executor = (
+  expr: Expr,
+  entity: string
+) => Promise<void | Record<string, any>>
 
 export const makeExecutor =
   (client: Client): Executor =>
