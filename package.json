@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "exec": "echo 'testing exec' && node -r esbuild-runner/register -r dotenv/config exec.ts dotenv_config_path=.env.example",
-    "setupdb": "node -r esbuild-runner/register -r dotenv/config scripts/setup-database.ts dotenv_config_path=.env"
+    "setupdb": "node -r esbuild-runner/register -r dotenv/config scripts/setup-database.ts dotenv_config_path=.env",
+    "experiment": "node -r esbuild-runner/register -r dotenv/config scripts/experiment.ts dotenv_config_path=.env"
   },
   "devDependencies": {
     "@types/node": "^16.7.13",

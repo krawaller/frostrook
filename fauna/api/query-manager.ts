@@ -10,7 +10,7 @@ import { registerWithUser } from './functions/register-user'
  * The client will then be replaced with a client that uses the secret that was returned by Login.
  */
 
-class QueryManager {
+export class QueryManager {
   client: Client
   headers: Record<string, string>
   constructor(private bootstrapToken: string, private domain: string) {
@@ -27,10 +27,10 @@ class QueryManager {
 
   async login(email: string, password: string) {
     const res = await login(this.client, email, password)
-    if (res?.secret) {
+    if (res.data) {
       this.client = new faunadb.Client({
         headers: this.headers,
-        secret: res.secret,
+        secret: res.data.secret,
         domain: this.domain,
       })
     }
@@ -39,10 +39,10 @@ class QueryManager {
 
   async register(email: string, password: string, name: string) {
     const res = await registerWithUser(this.client, email, password, name)
-    if (res) {
+    if (res.data) {
       this.client = new faunadb.Client({
         headers: this.headers,
-        secret: res.secret, // .secret, <---- TODO check this result!
+        secret: res.data.secret,
         domain: this.domain,
       })
     }
