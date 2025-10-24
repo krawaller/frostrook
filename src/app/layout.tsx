@@ -2,8 +2,8 @@ import React from 'react';
 import './globals.css';
 
 export const metadata = {
-  title: 'FrostRook - Hello World',
-  description: 'A simple Next.js Hello World application',
+  title: 'Frostrook',
+  description: 'Frostrook official Website',
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
