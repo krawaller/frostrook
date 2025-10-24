@@ -3,25 +3,11 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 export async function updateSession(request: NextRequest) {
   try {
-    // Detailed environment variable checking for Vercel debugging
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    console.log('Vercel environment debug:', {
-      hasUrl: !!supabaseUrl,
-      hasKey: !!supabaseKey,
-      urlPrefix: supabaseUrl?.substring(0, 20) || 'MISSING',
-      keyPrefix: supabaseKey?.substring(0, 20) || 'MISSING',
-      nodeEnv: process.env.NODE_ENV,
-      platform: process.env.VERCEL ? 'Vercel' : 'Local',
-    });
-
     // Check environment variables first
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing Supabase environment variables:', {
-        NEXT_PUBLIC_SUPABASE_URL: supabaseUrl ? 'SET' : 'MISSING',
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseKey ? 'SET' : 'MISSING',
-      });
+    if (
+      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ) {
       // Continue without authentication if env vars are missing
       return NextResponse.next({ request });
     }
@@ -30,24 +16,28 @@ export async function updateSession(request: NextRequest) {
       request,
     });
 
-    const supabase = createServerClient(supabaseUrl, supabaseKey, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              request.cookies.set(name, value)
+            );
+            supabaseResponse = NextResponse.next({
+              request,
+            });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options)
+            );
+          },
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    });
+      }
+    );
 
     // Do not run code between createServerClient and
     // supabase.auth.getUser(). A simple mistake could make it very hard to debug
@@ -88,7 +78,6 @@ export async function updateSession(request: NextRequest) {
 
     return supabaseResponse;
   } catch (error) {
-    console.error('Proxy error:', error);
     // In case of error, allow the request to continue without authentication
     return NextResponse.next({ request });
   }
