@@ -2,14 +2,35 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  try {
+    // Detailed environment variable checking for Vercel debugging
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+    console.log('Vercel environment debug:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseKey,
+      urlPrefix: supabaseUrl?.substring(0, 20) || 'MISSING',
+      keyPrefix: supabaseKey?.substring(0, 20) || 'MISSING',
+      nodeEnv: process.env.NODE_ENV,
+      platform: process.env.VERCEL ? 'Vercel' : 'Local',
+    });
+
+    // Check environment variables first
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Missing Supabase environment variables:', {
+        NEXT_PUBLIC_SUPABASE_URL: supabaseUrl ? 'SET' : 'MISSING',
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseKey ? 'SET' : 'MISSING',
+      });
+      // Continue without authentication if env vars are missing
+      return NextResponse.next({ request });
+    }
+
+    let supabaseResponse = NextResponse.next({
+      request,
+    });
+
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -26,45 +47,49 @@ export async function updateSession(request: NextRequest) {
           );
         },
       },
+    });
+
+    // Do not run code between createServerClient and
+    // supabase.auth.getUser(). A simple mistake could make it very hard to debug
+    // issues with users being randomly logged out.
+
+    // IMPORTANT: DO NOT REMOVE auth.getUser()
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (
+      !user &&
+      !request.nextUrl.pathname.startsWith('/login') &&
+      !request.nextUrl.pathname.startsWith('/auth') &&
+      !request.nextUrl.pathname.startsWith('/error') &&
+      !request.nextUrl.pathname.startsWith('/test') &&
+      request.nextUrl.pathname !== '/'
+    ) {
+      // no user, potentially respond by redirecting the user to the login page
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      return NextResponse.redirect(url);
     }
-  );
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
+    // IMPORTANT: You *must* return the supabaseResponse object as it is.
+    // If you're creating a new response object with NextResponse.next() make sure to:
+    // 1. Pass the request in it, like so:
+    //    const myNewResponse = NextResponse.next({ request })
+    // 2. Copy over the cookies, like so:
+    //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+    // 3. Change the myNewResponse object to fit your needs, but avoid changing
+    //    the cookies!
+    // 4. Finally:
+    //    return myNewResponse
+    // If this is not done, you may be causing the browser and server to go out
+    // of sync and terminate the user's session prematurely!
 
-  // IMPORTANT: DO NOT REMOVE auth.getUser()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/error') &&
-    !request.nextUrl.pathname.startsWith('/test') &&
-    request.nextUrl.pathname !== '/'
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
+    return supabaseResponse;
+  } catch (error) {
+    console.error('Proxy error:', error);
+    // In case of error, allow the request to continue without authentication
+    return NextResponse.next({ request });
   }
-
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
-
-  return supabaseResponse;
 }
