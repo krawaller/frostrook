@@ -119,8 +119,6 @@ frostrook/
 ├── supabase/
 │   ├── migrations/           # Database migrations
 │   └── config.toml           # Supabase configuration
-├── database/
-│   └── setup.sql             # Database schema (reference)
 ├── .env.local.dev.template   # Local development environment template
 ├── .env.local.prod.template  # Production environment template
 └── ...config files
