@@ -40,6 +40,24 @@ export default async function HomePage() {
             <p style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>
               Welcome, {user.email}!
             </p>
+            <div style={{ marginBottom: '0.5rem' }}>
+              <a
+                href="/things"
+                style={{
+                  backgroundColor: '#4F46E5',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '4px',
+                  textDecoration: 'none',
+                  fontSize: '0.9rem',
+                  marginRight: '0.5rem',
+                  display: 'inline-block',
+                }}
+              >
+                My Things
+              </a>
+            </div>
             <form action={logout} style={{ display: 'inline' }}>
               <button
                 style={{
