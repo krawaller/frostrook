@@ -4,11 +4,21 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local": "npm run env:local-setup && cp .env.local.dev .env.local && next dev",
+    "dev:production": "npm run env:production && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "env:local": "cp .env.local.dev.template .env.local.dev 2>/dev/null || true && cp .env.local.dev .env.local",
+    "env:production": "cp .env.local.prod.template .env.local.prod 2>/dev/null || true && cp .env.local.prod .env.local",
+    "env:setup": "cp .env.local.dev.template .env.local.dev && cp .env.local.prod.template .env.local.prod && echo 'Environment templates created. Run npm run env:local-setup to configure local development, or edit .env.local.prod with your production values.'",
+    "env:local-setup": "echo 'Setting up local environment from Supabase...' && supabase start > /tmp/supabase_start.log 2>&1 && echo '# Local Supabase development environment' > .env.local.dev && echo 'NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321' >> .env.local.dev && supabase status | grep 'Publishable key:' | sed 's/.*Publishable key: /NEXT_PUBLIC_SUPABASE_ANON_KEY=/' >> .env.local.dev && supabase status | grep 'Secret key:' | sed 's/.*Secret key: /SUPABASE_SERVICE_ROLE_KEY=/' >> .env.local.dev && echo 'Local environment configured!'",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:reset": "supabase db reset",
+    "supabase:status": "supabase status"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
